@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hidden - Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .profile-card {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    .profile-card h3 {
+      color: #ffc107;
+      margin-bottom: 20px;
+    }
+
+    .btn-pay {
+      background-color: #ff9800;
+      border: none;
+    }
+
+    .balance {
+      font-size: 1.5rem;
+      color: #ffc107;
+    }
+
+    .video-container {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .captcha-container {
+      margin-top: 20px;
+      display: none;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+      background-color: black;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+        <img src="https://via.placeholder.com/30" alt="Logo" class="me-2 rounded-circle">
+        Hidden
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="home.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="movie.html">Movies</a></li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle active" href="#" id="profileMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Profile
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileMenu">
+              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="profile-card text-center">
+      <h3>User Profile</h3>
+      <p><strong>Name:</strong> Guna</p>
+      <p><strong>Email:</strong> guna#gmail.com</p>
+      <p><strong>Current Balance:</strong> <span class="balance" id="balanceCoins">20</span> Coins</p>
+
+      <button class="btn btn-pay my-3" onclick="startAd()">Watch Ad & Earn Coins</button>
+
+      <div class="video-container" id="videoContainer">
+        <video id="adVideo" src="data/ads.mp4"></video>
+        <p class="text-warning mt-2">⏳ Please watch the full ad to unlock captcha. Skipping or pausing is disabled.</p>
+      </div>
+
+      <div class="captcha-container" id="captchaContainer">
+        <p class="mt-3">Please enter the captcha: <strong id="captchaText"></strong></p>
+        <input type="text" id="captchaInput" class="form-control mb-2" placeholder="Enter captcha (case sensitive)">
+        <button class="btn btn-pay btn-sm" onclick="submitCaptcha()">Submit & Claim 5 Coins</button>
+      </div>
+
+      <p class="mt-3">Watch full video & complete captcha to earn coins.</p>
+      <a href="home.html" class="btn btn-outline-warning btn-sm mt-3">Back to Home</a>
+    </div>
+  </div>
+
+  <div class="modal fade" id="logoutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Are you exiting the website?</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn btn-danger" onclick="Logout()">Yes, Exit</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">No, Stay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <script>
+    let userCoins = 20;
+    let generatedCaptcha = '';
+
+    function updateBalance() {
+      document.getElementById('balanceCoins').innerText = userCoins;
+    }
+
+    function startAd() {
+      const video = document.getElementById('adVideo');
+      document.getElementById('videoContainer').style.display = 'block';
+      document.getElementById('captchaContainer').style.display = 'none';
+      document.getElementById('captchaInput').value = '';
+
+      video.controls = false;
+      video.currentTime = 0;
+      video.play();
+
+      // Disable pause and seek by force
+      video.addEventListener('pause', () => video.play());
+      video.addEventListener('seeking', () => {
+        if (Math.abs(video.currentTime - 0) > 0.1) {
+          video.currentTime = 0;
+        }
+      });
+
+      // Block right-click
+      video.oncontextmenu = () => false;
+
+      // Block keyboard keys: Space, Arrows, etc.
+      window.addEventListener('keydown', blockKeys);
+
+      video.onended = function () {
+        showCaptcha();
+        window.removeEventListener('keydown', blockKeys);
+      };
+    }
+
+    function blockKeys(e) {
+      const blockedKeys = [' ', 'ArrowRight', 'ArrowLeft', 'MediaPlayPause', 'k'];
+      if (blockedKeys.includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+    }
+
+    function showCaptcha() {
+      generatedCaptcha = Math.random().toString(36).substring(2, 7);
+      document.getElementById('captchaText').innerText = generatedCaptcha;
+      document.getElementById('captchaContainer').style.display = 'block';
+    }
+
+    function submitCaptcha() {
+      const userInput = document.getElementById('captchaInput').value.trim();
+      if (userInput === generatedCaptcha) {
+        userCoins += 5;
+        updateBalance();
+        alert('✅ Correct! 5 coins added.');
+        resetAd();
+      } else {
+        alert('❌ Incorrect captcha. Try again.');
+      }
+    }
+
+    function resetAd() {
+      const video = document.getElementById('adVideo');
+      document.getElementById('videoContainer').style.display = 'none';
+      document.getElementById('captchaContainer').style.display = 'none';
+      video.pause();
+      video.currentTime = 0;
+    }
+
+    updateBalance();
+
+    
+  function logout() {
+    // Open the logout page in a new tab
+    window.open('logout.html', '_blank');
+
+    // Close the current tab (works in most modern browsers)
+    window.close();
+  }
+
+
+
+    
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
