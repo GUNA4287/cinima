@@ -86,7 +86,10 @@
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="#">Hidden</a>
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+        <img src="data/main_logo.png" alt="Logo" class="me-2 rounded-circle" style="height: 40px;width: 40px;">
+        HIDDEN
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -94,19 +97,9 @@
         <ul class="navbar-nav">
           <li class="nav-item"><a class="nav-link" href="home.html">Home</a></li>
           <li class="nav-item"><a class="nav-link active" href="#">Movies</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="profileMenu" role="button" data-bs-toggle="dropdown">
-              Profile
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="profile.html">My Account</a></li>
-              <li><a class="dropdown-item" href="#">Settings</a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item" href="#">Logout</a></li>
-            </ul>
-          </li>
+          <li class="nav-item"><a class="nav-link" href="profile.html">Profile</a></li>
+
+
         </ul>
       </div>
     </div>
@@ -141,13 +134,13 @@
 
     <h4 class="text-light mt-4 mb-2">Available Movies</h4>
     <div class="movie-list" id="movieList">
-      <div class="movie-item" onclick="openMovie('Leo', 'Leo (2023) Action Thriller.', 'leo.jpg', 3, 6)">
+      <div class="movie-item" onclick="openMovie('Leo', 'Leo (2023) Action Thriller.', 'leo.jpg', 3, 6, 'https://drive.google.com/uc?export=download&id=1kSC3e4wQyhFUJItTCK_VdA1PD8cxlEfM', 'https://drive.google.com/uc?export=download&id=YOUR_HD_FILE_ID')">
         <i class="fas fa-file-video"></i> Leo (2023)
       </div>
-      <div class="movie-item" onclick="openMovie('Vikram', 'Vikram (2022) Action Drama.', 'vikram.jpg', 4, 8)">
+      <div class="movie-item" onclick="openMovie('Vikram', 'Vikram (2022) Action Drama.', 'vikram.jpg', 4, 8, 'https://drive.google.com/uc?export=download&id=HQ_ID_2', 'https://drive.google.com/uc?export=download&id=HD_ID_2')">
         <i class="fas fa-file-video"></i> Vikram (2022)
       </div>
-      <div class="movie-item" onclick="openMovie('Master', 'Master (2021) College Drama.', 'master.jpg', 2, 5)">
+      <div class="movie-item" onclick="openMovie('Master', 'Master (2021) College Drama.', 'master.jpg', 2, 5, 'https://drive.google.com/uc?export=download&id=HQ_ID_3', 'https://drive.google.com/uc?export=download&id=HD_ID_3')">
         <i class="fas fa-file-video"></i> Master (2021)
       </div>
     </div>
@@ -170,13 +163,13 @@
             <div class="list-group-item bg-dark text-white border-0 mb-2 rounded">
               <strong>HQ Version</strong> — <span id="hqPrice"></span> coins
               <button onclick="pay('HQ')" class="btn btn-pay btn-sm float-end">Pay & Unlock</button>
-              <a id="hqDownload" href="#" download class="btn btn-download btn-sm mt-2 w-100 d-none">Download HQ</a>
+              <a id="hqDownload" href="#" class="btn btn-download btn-sm mt-2 w-100 d-none" download>Download HQ</a>
             </div>
 
             <div class="list-group-item bg-dark text-white border-0 rounded">
               <strong>HD Version</strong> — <span id="hdPrice"></span> coins
               <button onclick="pay('HD')" class="btn btn-pay btn-sm float-end">Pay & Unlock</button>
-              <a id="hdDownload" href="#" download class="btn btn-download btn-sm mt-2 w-100 d-none">Download HD</a>
+              <a id="hdDownload" href="#" class="btn btn-download btn-sm mt-2 w-100 d-none" download>Download HD</a>
             </div>
           </div>
 
@@ -187,15 +180,15 @@
 
   <script>
     let userCoins = 20;
-    let currentMovie = { name: '', desc: '', image: '', hq: 0, hd: 0 };
+    let currentMovie = { name: '', desc: '', image: '', hq: 0, hd: 0, hqLink: '', hdLink: '' };
 
     function updateBalance() {
       document.getElementById('userBalance').innerText = userCoins;
     }
 
-    function openMovie(name, desc, imageFile, hqPrice, hdPrice) {
+    function openMovie(name, desc, imageFile, hqPrice, hdPrice, hqLink, hdLink) {
       const imagePath = `data/${imageFile}`;
-      currentMovie = { name, desc, image: imagePath, hq: hqPrice, hd: hdPrice };
+      currentMovie = { name, desc, image: imagePath, hq: hqPrice, hd: hdPrice, hqLink, hdLink };
 
       document.getElementById('movieTitle').innerText = name;
       document.getElementById('movieDesc').innerText = desc;
@@ -214,13 +207,14 @@
     function pay(type) {
       const price = type === 'HQ' ? currentMovie.hq : currentMovie.hd;
       const downloadBtn = type === 'HQ' ? document.getElementById('hqDownload') : document.getElementById('hdDownload');
+      const videoLink = type === 'HQ' ? currentMovie.hqLink : currentMovie.hdLink;
 
       if (userCoins >= price) {
         userCoins -= price;
         updateBalance();
-        downloadBtn.href = currentMovie.image;
+        downloadBtn.href = videoLink;
         downloadBtn.classList.remove('d-none');
-        alert(`${type} payment successful!`);
+        alert(`${type} payment successful! Now click download.`);
       } else {
         alert('Insufficient coins!');
       }
@@ -237,7 +231,6 @@
         const matchName = input === '' || text.includes(input);
         const matchYear = year === '' || text.includes(year);
         const matchDate = date === '' || text.includes(date);
-
         item.style.display = (matchName && matchYear && matchDate) ? 'flex' : 'none';
       });
     }
