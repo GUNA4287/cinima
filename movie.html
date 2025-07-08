@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,14 +13,12 @@
       min-height: 100vh;
       padding: 20px;
     }
-
     .filter-box {
       background-color: rgba(255, 255, 255, 0.05);
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 20px;
     }
-
     .movie-list {
       background-color: rgba(255, 255, 255, 0.05);
       border-radius: 10px;
@@ -29,7 +26,6 @@
       max-height: 300px;
       overflow-y: auto;
     }
-
     .movie-item {
       padding: 8px 12px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -37,38 +33,30 @@
       align-items: center;
       cursor: pointer;
     }
-
     .movie-item i {
       margin-right: 8px;
       color: #ffc107;
     }
-
     .movie-item:last-child {
       border-bottom: none;
     }
-
     .btn-search {
       background-color: #ff9800;
       border: none;
       color: white;
     }
-
     .modal-content {
       background-color: #222;
       color: white;
     }
-
-    .btn-pay,
-    .btn-download {
+    .btn-pay, .btn-download {
       background-color: #ff9800;
       border: none;
     }
-
     .coin-balance {
       font-weight: bold;
       color: #ffc107;
     }
-
     .movie-img {
       width: 100%;
       height: 300px;
@@ -98,8 +86,6 @@
           <li class="nav-item"><a class="nav-link" href="home.html">Home</a></li>
           <li class="nav-item"><a class="nav-link active" href="#">Movies</a></li>
           <li class="nav-item"><a class="nav-link" href="profile.html">Profile</a></li>
-
-
         </ul>
       </div>
     </div>
@@ -134,13 +120,13 @@
 
     <h4 class="text-light mt-4 mb-2">Available Movies</h4>
     <div class="movie-list" id="movieList">
-      <div class="movie-item" onclick="openMovie('Leo', 'Leo (2023) Action Thriller.', 'leo.jpg', 3, 6, 'https://9334ec1f6e28.ngrok-free.app/ads.mp4', 'https://drive.google.com/uc?export=download&id=YOUR_HD_FILE_ID')">
+      <div class="movie-item" onclick="openMovie('Leo', 'Leo (2023) Action Thriller.', 'leo.jpg', 3, 6, 'leo')">
         <i class="fas fa-file-video"></i> Leo (2023)
       </div>
-      <div class="movie-item" onclick="openMovie('Vikram', 'Vikram (2022) Action Drama.', 'vikram.jpg', 4, 8, 'https://drive.google.com/uc?export=download&id=HQ_ID_2', 'https://drive.google.com/uc?export=download&id=HD_ID_2')">
+      <div class="movie-item" onclick="openMovie('Vikram', 'Vikram (2022) Action Drama.', 'vikram.jpg', 4, 8, 'vikram')">
         <i class="fas fa-file-video"></i> Vikram (2022)
       </div>
-      <div class="movie-item" onclick="openMovie('Master', 'Master (2021) College Drama.', 'master.jpg', 2, 5, 'https://drive.google.com/uc?export=download&id=HQ_ID_3', 'https://drive.google.com/uc?export=download&id=HD_ID_3')">
+      <div class="movie-item" onclick="openMovie('Master', 'Master (2021) College Drama.', 'master.jpg', 2, 5, 'master')">
         <i class="fas fa-file-video"></i> Master (2021)
       </div>
     </div>
@@ -152,7 +138,7 @@
       <div class="modal-content p-3">
         <div class="modal-header border-0">
           <h5 class="modal-title" id="movieTitle"></h5>
-          <button type="a" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body text-center">
           <img id="movieImage" class="movie-img" src="" alt="">
@@ -179,20 +165,21 @@
   </div>
 
   <script>
+    const serverURL = 'https://9334ec1f6e28.ngrok-free.app/video/';
+
     let userCoins = 20;
-    let currentMovie = { name: '', desc: '', image: '', hq: 0, hd: 0, hqLink: '', hdLink: '' };
+    let currentMovie = { name: '', desc: '', image: '', hq: 0, hd: 0, baseName: '' };
 
     function updateBalance() {
       document.getElementById('userBalance').innerText = userCoins;
     }
 
-    function openMovie(name, desc, imageFile, hqPrice, hdPrice, hqLink, hdLink) {
-      const imagePath = `data/${imageFile}`;
-      currentMovie = { name, desc, image: imagePath, hq: hqPrice, hd: hdPrice, hqLink, hdLink };
+    function openMovie(name, desc, imageFile, hqPrice, hdPrice, baseName) {
+      currentMovie = { name, desc, image: `data/${imageFile}`, hq: hqPrice, hd: hdPrice, baseName: baseName };
 
       document.getElementById('movieTitle').innerText = name;
       document.getElementById('movieDesc').innerText = desc;
-      document.getElementById('movieImage').src = imagePath;
+      document.getElementById('movieImage').src = currentMovie.image;
 
       document.getElementById('hqPrice').innerText = hqPrice;
       document.getElementById('hdPrice').innerText = hdPrice;
@@ -200,21 +187,25 @@
       document.getElementById('hqDownload').classList.add('d-none');
       document.getElementById('hdDownload').classList.add('d-none');
 
-      updateBalance();
       new bootstrap.Modal(document.getElementById('movieModal')).show();
+      updateBalance();
     }
 
     function pay(type) {
       const price = type === 'HQ' ? currentMovie.hq : currentMovie.hd;
       const downloadBtn = type === 'HQ' ? document.getElementById('hqDownload') : document.getElementById('hdDownload');
-      const videoLink = type === 'HQ' ? currentMovie.hqLink : currentMovie.hdLink;
+      const videoFile = currentMovie.baseName + (type === 'HQ' ? 'HQ.mp4' : 'HD.mp4');
 
       if (userCoins >= price) {
         userCoins -= price;
         updateBalance();
-        downloadBtn.href = videoLink;
+
+        const videoURL = serverURL + videoFile;
+        downloadBtn.href = videoURL;
+        downloadBtn.setAttribute('download', videoFile);
         downloadBtn.classList.remove('d-none');
-        alert(`${type} payment successful! Now click download.`);
+
+        alert(`${type} payment successful! Click download to save the video.`);
       } else {
         alert('Insufficient coins!');
       }
@@ -241,5 +232,4 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-
 </html>
